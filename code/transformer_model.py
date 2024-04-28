@@ -1,5 +1,6 @@
 import pandas as pd
 import tensorflow as tf
+import numpy as np
 from tensorflow.keras.layers import Input, Dense, Dropout, LayerNormalization, MultiHeadAttention, GlobalAveragePooling1D
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -47,15 +48,31 @@ class Transformer(tf.keras.Model):
 
 # Import data
 df = pd.read_csv('../data/card_transdata.csv')
+#87,403 fraud
+#174,806 total for 50% split
+
+#Drop 825194 non fraud for equal balance
+df = df.drop(df[(df['fraud'] == 0.0)].head(825194).index)
+
+#Shuffle
+df = df.sample(frac=1).reset_index(drop=True)
+
 df = df.iloc[:, 1:] #Drop header
 features = df.iloc[:, :-1] 
 labels = df.iloc[:, -1] 
 data = features.values
 
+
+
+#label_counts = df['fraud'].value_counts()
+#print(label_counts[1], " is nonfraud")
+
+
 #Split
 train_size = int(0.8 * len(data))
 X_train, y_train = data[:train_size], labels[:train_size]
 X_test, y_test = data[train_size:], labels[train_size:]
+
 
 
 #Conver to tensors
@@ -77,8 +94,8 @@ loss_fn = BinaryCrossentropy()
 accuracy_metric = BinaryAccuracy()
 
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=[accuracy_metric])
-model.fit(X_train, y_train, batch_size=64, epochs=1, validation_split=0.2) 
-loss, accuracy = model.evaluate(X_test, y_test)
-print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')
+#model.fit(X_train, y_train, batch_size=64, epochs=1, validation_split=0.2) 
+#loss, accuracy = model.evaluate(X_test, y_test)
+#print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')
 #predictions = model.predict(X_new_data)
 
