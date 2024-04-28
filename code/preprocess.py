@@ -19,7 +19,6 @@ def anomaly_preprocess(train_percentage=0.8, train_balanced=False):
     if train_balanced:
         # Get all samples from training data that are fraudulent
         fraud_data = train_data[train_data['fraud'] == 1]
-        print(f'Fraudulent samples in training set: {len(fraud_data)}')
         # Sample the same number of non-fraudulent samples from the training data
         non_fraud_data = train_data[train_data['fraud'] == 0].sample(len(fraud_data))
         # Combine these to give a balanced training set (half fraud, half non-fraud)
