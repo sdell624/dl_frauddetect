@@ -21,7 +21,7 @@ class Transformer(tf.keras.Model):
         self.classifier = Dense(1, activation='sigmoid')
 
     def _build_transformer_block(self):
-        x = Input(shape=(7, self.hidden_dim))   #6 is feature size 
+        x = Input(shape=(30, self.hidden_dim))   #7 transdata 10 for synthetic 30 for encoded
         layer_norm = LayerNormalization(epsilon=1e-6)(x)
         dropout = Dropout(self.dropout_rate)(layer_norm)
         attention = MultiHeadAttention(num_heads=self.num_heads, key_dim=self.hidden_dim)(dropout, dropout)
@@ -49,8 +49,8 @@ class Transformer(tf.keras.Model):
 #Select Dataset to use
 
 #'isFraud' is last column after dropping isFlaggedFraud
-df = pd.read_csv('../data/SyntheticallyGenerated.csv', delimiter=',', nrows = None).drop(columns=['isFlaggedFraud']) 
-print(df.head())
+#df = pd.read_csv('../data/SyntheticallyGenerated.csv', delimiter=',', nrows = None).drop(columns=['isFlaggedFraud']) 
+#print(df.head())
 #Balancing SyntheticallyGenerated
 # fraud 
 #Drop  non fraud for 50% fraud
@@ -58,20 +58,23 @@ print(df.head())
 
 
 
-#df = pd.read_csv('../data/encoded_dataset.csv') #'class' is last column
-
+df = pd.read_csv('../data/encoded_dataset.csv') #'Class' is last column
+print(df.head())
+print(len(df[(df['Class'] == 0)]), " non fraud")
+print(len(df[(df['Class'] == 1)]), " fraud")
 #Balancing encoded
-# fraud 
-#Drop  non fraud for 50% fraud
-#Drop  non fraud for 20% fraud
+#492 fraud (.17%)
+#Drop 283823 non fraud for 50% fraud
+#Drop 28185 non fraud for 20% fraud
+
 
 
 #df = pd.read_csv('../data/card_transdata.csv') #'fraud' is last column
 
 #Balancing Trans data
 #87,403 fraud 
-#Drop 825,194 non fraud for 50% fraud
-#Drop 562,985 non fraud for 20% fraud
+#Drop 825194 non fraud for 50% fraud
+#Drop 562985 non fraud for 20% fraud
 
 
 #Shuffle
@@ -108,9 +111,9 @@ optimizer = Adam(learning_rate=0.001)
 loss_fn = BinaryCrossentropy()
 accuracy_metric = BinaryAccuracy()
 
-#model.compile(optimizer=optimizer, loss=loss_fn, metrics=[accuracy_metric])
-#model.fit(X_train, y_train, batch_size=64, epochs=10, validation_split=0.2) 
-#loss, accuracy = model.evaluate(X_test, y_test)
-#print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')
+model.compile(optimizer=optimizer, loss=loss_fn, metrics=[accuracy_metric])
+model.fit(X_train, y_train, batch_size=64, epochs=10, validation_split=0.2) 
+loss, accuracy = model.evaluate(X_test, y_test)
+print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')
 #predictions = model.predict(X_new_data)
 

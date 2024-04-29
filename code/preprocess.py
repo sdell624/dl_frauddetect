@@ -42,6 +42,19 @@ def anomaly_preprocess(train_percentage=0.8, train_balanced=False):
 
     return x_train, y_train, x_test, y_test
 
+def synthetic_preprocess(train_percentage=0.8, train_balanced=False):
+    
+    #Drop column
+    
+    #Balance
+    
+    #ohe
+    
+    #Split
+    
+    
+    pass
+
 # Sanity checks
 # x_train, y_train, x_test, y_test = anomaly_preprocess(train_percentage=0.8, train_balanced=True)
 
