@@ -24,16 +24,26 @@ class CNN1D(tf.keras.Model):
         x = self.pooling(x)
         return self.classifier(x)
     
-x_train, y_train, x_test, y_test = pre.anomaly_preprocess(train_percentage=0.8, train_balanced=True)
+x_train, y_train, x_test, y_test = pre.synthetic_preprocess(train_percentage=0.8, train_balanced=True)
 
 print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
-# print number of fraudulent samples in training and test set
-print(f'Fraudulent samples in training set: {tf.reduce_sum(y_train)}')
-print(f'Fraudulent samples in test set: {tf.reduce_sum(y_test)}')
 
-# Create model
-# model = CNN1D(num_filters=64, kernel_size=3, hidden_dim=64, dropout_rate=0.2)
-# model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-# model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=3, batch_size=32)
-# loss, accuracy = model.evaluate(x_test, y_test)
-# print(f'Loss: {loss}, Accuracy: {accuracy}')
+# Create and train model
+model = CNN1D(num_filters=64, kernel_size=3, hidden_dim=64, dropout_rate=0.2)
+loss = tf.keras.losses.BinaryCrossentropy()
+accuracy = tf.keras.metrics.BinaryAccuracy()
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+model.compile(optimizer=optimizer, loss=loss, metrics=[accuracy])
+model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=10, batch_size=32)
+
+# Calculate desired metrics (loss, accuracy, false negatives, false positives)
+loss, accuracy = model.evaluate(x_test, y_test)
+print(f'Loss: {loss}, Accuracy: {accuracy}')
+
+y_pred = model.predict(x_test)
+y_pred = (y_pred > 0.5).astype(int)
+fn = tf.keras.metrics.FalseNegatives()
+fp = tf.keras.metrics.FalsePositives()
+fn.update_state(y_test, y_pred)
+fp.update_state(y_test, y_pred)
+print(f'False Negatives: {fn.result().numpy()}, False Positives: {fp.result().numpy()}')
