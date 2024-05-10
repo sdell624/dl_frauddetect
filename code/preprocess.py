@@ -4,7 +4,7 @@ import tensorflow as tf
 
 # Anomaly Detection Dataset (real data, not encoded)
 # https://www.kaggle.com/code/rudyhendraprasetiya/anomaly-detection-with-autoencoders/input
-def anomaly_preprocess(train_percentage=0.8, train_balanced=False, data_path='../data/card_transdata.csv'):
+def anomaly_preprocess(train_percentage=0.8, train_balanced=False, data_path='../data/card_transdata.csv', percent_fraud=0.5):
     # Import data and shuffle
     np.random.seed(0)
     df = pd.read_csv(data_path)
@@ -20,7 +20,9 @@ def anomaly_preprocess(train_percentage=0.8, train_balanced=False, data_path='..
         # Get all samples from training data that are fraudulent
         fraud_data = train_data[train_data['fraud'] == 1]
         # Sample the same number of non-fraudulent samples from the training data
-        non_fraud_data = train_data[train_data['fraud'] == 0].sample(len(fraud_data))
+        total_samples = int(len(fraud_data) / percent_fraud)
+        amount_non_fraud = total_samples - len(fraud_data)
+        non_fraud_data = train_data[train_data['fraud'] == 0].sample(amount_non_fraud)
         # Combine these to give a balanced training set (half fraud, half non-fraud)
         train_data = pd.concat([fraud_data, non_fraud_data])
         # Shuffle again, since right now all fraudulent samples are at the top
@@ -44,7 +46,7 @@ def anomaly_preprocess(train_percentage=0.8, train_balanced=False, data_path='..
 
 # Synthetically Generated Data (fake data, not encoded)
 # https://www.kaggle.com/datasets/ealaxi/paysim1/data
-def synthetic_preprocess(train_percentage=0.8, train_balanced=False, data_path='../data/synthetic_data.csv'):
+def synthetic_preprocess(train_percentage=0.8, train_balanced=False, data_path='../data/synthetic_data.csv', percent_fraud=0.5):
     # Import data and shuffle
     np.random.seed(0)
     df = pd.read_csv(data_path)
@@ -60,7 +62,9 @@ def synthetic_preprocess(train_percentage=0.8, train_balanced=False, data_path='
         # Get all samples from training data that are fraudulent
         fraud_data = train_data[train_data['isFraud'] == 1]
         # Sample the same number of non-fraudulent samples from the training data
-        non_fraud_data = train_data[train_data['isFraud'] == 0].sample(len(fraud_data))
+        total_samples = int(len(fraud_data) / percent_fraud)
+        amount_non_fraud = total_samples - len(fraud_data)
+        non_fraud_data = train_data[train_data['isFraud'] == 0].sample(amount_non_fraud)
         # Combine these to give a balanced training set (half fraud, half non-fraud)
         train_data = pd.concat([fraud_data, non_fraud_data])
         # Shuffle again, since right now all fraudulent samples are at the top
@@ -97,7 +101,7 @@ def synthetic_preprocess(train_percentage=0.8, train_balanced=False, data_path='
 
 # Real PCA Data (real data, already encoded with PCA so features do not have direct meaning except for 'Time' and 'Amount')
 # https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud/data
-def pca_preprocess(train_percentage=0.8, train_balanced=False, data_path='../data/pca_data.csv'):
+def pca_preprocess(train_percentage=0.8, train_balanced=False, data_path='../data/pca_data.csv', percent_fraud=0.5):
     # Import data and shuffle
     np.random.seed(0)
     df = pd.read_csv(data_path)
@@ -113,7 +117,9 @@ def pca_preprocess(train_percentage=0.8, train_balanced=False, data_path='../dat
         # Get all samples from training data that are fraudulent
         fraud_data = train_data[train_data['Class'] == 1]
         # Sample the same number of non-fraudulent samples from the training data
-        non_fraud_data = train_data[train_data['Class'] == 0].sample(len(fraud_data))
+        total_samples = int(len(fraud_data) / percent_fraud)
+        amount_non_fraud = total_samples - len(fraud_data)
+        non_fraud_data = train_data[train_data['Class'] == 0].sample(amount_non_fraud)
         # Combine these to give a balanced training set (half fraud, half non-fraud)
         train_data = pd.concat([fraud_data, non_fraud_data])
         # Shuffle again, since right now all fraudulent samples are at the top

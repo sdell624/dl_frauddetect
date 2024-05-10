@@ -14,17 +14,14 @@ class CNN1D(tf.keras.Model):
         self.pooling = tf.keras.layers.GlobalAveragePooling1D()
         self.classifier = tf.keras.layers.Dense(1, activation='sigmoid')
 
-    def call(self, inputs, training=False):
-        # print(inputs.shape, " is inputs")
+    def call(self, inputs):
         inputs = tf.expand_dims(inputs, axis=-1) #expand for hidden_dim
-        # print(inputs.shape, " is new inputs")
-        
         x = self.embedding(inputs)
         x = self.conv1d(x)
         x = self.pooling(x)
         return self.classifier(x)
     
-x_train, y_train, x_test, y_test = pre.synthetic_preprocess(train_percentage=0.8, train_balanced=True)
+x_train, y_train, x_test, y_test = pre.anomaly_preprocess(train_percentage=0.8, train_balanced=False, percent_fraud=0.2)
 
 print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
 
@@ -35,6 +32,7 @@ accuracy = tf.keras.metrics.BinaryAccuracy()
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer, loss=loss, metrics=[accuracy])
 model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=10, batch_size=32)
+print(model.summary())
 
 # Calculate desired metrics (loss, accuracy, false negatives, false positives)
 loss, accuracy = model.evaluate(x_test, y_test)
