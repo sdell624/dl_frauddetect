@@ -14,8 +14,8 @@ class RNN(tf.keras.Model):
         # Substitues for "embedding layer"
         self.d1 = tf.keras.layers.Dense(rnn_size)
         self.rnn = tf.keras.layers.LSTM(rnn_size, return_sequences=True, dropout=.1)
-        self.d2 = tf.keras.layers.Dense(rnn_size, activation="relu")
-        self.d3 = tf.keras.layers.Dense(32, activation="relu")
+        self.d2 = tf.keras.layers.Dense(rnn_size, activation="LeakyReLU")
+        self.d3 = tf.keras.layers.Dense(32, activation="LeakyReLU")
         self.d4 = tf.keras.layers.Dense(1, activation="sigmoid")
         self.fixOutputs = tf.keras.layers.Reshape((-1, 1)) 
 
@@ -27,25 +27,27 @@ class RNN(tf.keras.Model):
 
 
 # #load data from preprocess
-# df = pd.read_csv('data/card_transdata.csv')
-# #87,403 fraud
-# #174,806 total for 50% split
-# #Drop 825194 non fraud for equal balance
-# df = df.drop(df[(df['fraud'] == 0.0)].head(47403).index)
-# # df = df.drop(df[(df['fraud'] == 0.0)].head(14806).index)
-# # Shuffle
-# df = df.sample(frac=1).reset_index(drop=True)
+df = pd.read_csv('data/card_transdata.csv')
+#87,403 fraud
+#174,806 total for 50% split
+#Drop 825194 non fraud for equal balance
+# df = df.drop(df[(df['fraud'] == 0.0)].head(825194).index)
+df = df.drop(df[(df['fraud'] == 0.0)].head(562985).index)
+# print(len(df[(df['fraud'] == 0)]), " non fraud")
+# print(len(df[(df['fraud'] == 1)]), " fraud")
+# Shuffle
+df = df.sample(frac=1).reset_index(drop=True)
 
 
 
-df = pd.read_csv('data/encoded_dataset.csv') #'Class' is last column
+#df = pd.read_csv('data/encoded_dataset.csv') #'Class' is last column
 # print(df.head())
 # print(len(df[(df['Class'] == 0)]), " non fraud")
 # print(len(df[(df['Class'] == 1)]), " fraud")
 #Drop 283823 non fraud for 50% fraud
-# df = df.drop(df[(df['Class'] == 0)].head(283823).index)
-# #Drop 28185 non fraud for 20% fraud
-# df = df.drop(df[(df['Class'] == 0)].head(282347).index)
+#df = df.drop(df[(df['Class'] == 0)].head(283823).index)
+#Drop 28185 non fraud for 20% fraud
+#df = df.drop(df[(df['Class'] == 0)].head(282347).index)
 
 
 df = df.iloc[:, 1:] #Drop header
@@ -60,7 +62,7 @@ X_test, y_test = data[train_size:], labels[train_size:]
 # # RNN expects recog
 X_train = tf.reshape(tf.convert_to_tensor(X_train, dtype=tf.float32), (-1, 1, X_train.shape[1]))
 Y_train = tf.convert_to_tensor(y_train, dtype=tf.float32)
-X_test = tf.reshape(tf.convert_to_tensor(X_test, dtype=tf.float32), (-1, 1, X_train.shape[1]))
+X_test = tf.reshape(tf.convert_to_tensor(X_test, dtype=tf.float32), (-1, 1, X_test.shape[1]))
 Y_test = tf.convert_to_tensor(y_test, dtype=tf.float32)
 
 model = RNN()
@@ -72,3 +74,12 @@ model.fit(X_train, Y_train, batch_size=64, epochs=10, validation_split = .2)
 loss, accuracy = model.evaluate(X_test, y_test)
 print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')
 predictions = model.predict(X_test)
+false_positive = 0 #Predicted fraud when it wasa non fraud
+false_negative = 0 #Predicted non fraud when it was fraud
+for i, (prediction, actual_label) in enumerate(zip(predictions, y_test)):
+    if np.round(prediction) == 0 and actual_label == 1:
+      false_negative += 1
+    elif np.round(prediction) == 1 and actual_label == 0:
+      false_positive += 1
+        #print(f"Sample {i+1}: Predicted: {prediction}, Actual: {actual_label}")
+print(false_positive, " false pos and ", false_negative, " false negatives ")
